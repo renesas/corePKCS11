@@ -54,6 +54,8 @@
 
 /*-----------------------------------------------------------*/
 
+#pragma section const const_corePkcs11
+
 /**
  * @defgroup pkcs11_macros PKCS #11 Implementation Macros
  * @brief Macros for PKCS #11 software implementation.
@@ -4919,3 +4921,6 @@ CK_DECLARE_FUNCTION( CK_RV, C_GenerateRandom )( CK_SESSION_HANDLE hSession,
     return xResult;
 }
 /* @[declare_pkcs11_mbedtls_c_generate_random] */
+
+#pragma section
+
