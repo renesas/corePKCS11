@@ -35,8 +35,8 @@
 #include "core_pki_utils.h"
 
 /* mbedTLS includes. */
+#include "common.h"
 #include "mbedtls/pk.h"
-#include "mbedtls/pk_internal.h"
 #include "mbedtls/x509_crt.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
@@ -45,6 +45,8 @@
 #include "mbedtls/platform.h"
 #include "mbedtls/threading.h"
 #include "mbedtls/error.h"
+#include "pk_wrap.h"
+#include "psa_crypto_random_impl.h"
 
 /* C runtime includes. */
 #include <string.h>
@@ -2152,7 +2154,8 @@ static void prvGetLabel( CK_ATTRIBUTE ** ppxLabel,
             /* coverity[misra_c_2012_rule_10_5_violation] */
             if( xIsPrivate == ( CK_BBOOL ) CK_TRUE )
             {
-                lMbedTLSResult = mbedtls_pk_parse_key( pxMbedContext, pucData, ulDataLength, NULL, 0 );
+                lMbedTLSResult = mbedtls_pk_parse_key( pxMbedContext, pucData, ulDataLength, NULL, 0,
+                                                       mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE);
             }
             else
             {
@@ -2333,7 +2336,7 @@ static CK_RV prvCreateRsaKey( CK_ATTRIBUTE * pxTemplate,
         mbedtls_pk_init( &xMbedContext );
         xMbedContext.pk_ctx = pxRsaCtx;
         xMbedContext.pk_info = &mbedtls_rsa_info;
-        mbedtls_rsa_init( pxRsaCtx, MBEDTLS_RSA_PKCS_V15, 0 /*ignored.*/ );
+        mbedtls_rsa_init( pxRsaCtx );
     }
     else
     {
@@ -3009,7 +3012,7 @@ CK_DECLARE_FUNCTION( CK_RV, C_GetAttributeValue )( CK_SESSION_HANDLE hSession,
         /* Initialize mbed TLS x509 context. */
         mbedtls_x509_crt_init( &xMbedX509Context );
 
-        if( 0 == mbedtls_pk_parse_key( &xKeyContext, pxObjectValue, ulLength, NULL, 0 ) )
+        if( 0 == mbedtls_pk_parse_key( &xKeyContext, pxObjectValue, ulLength, NULL, 0, mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE) )
         {
             /* See explanation in prvCheckValidSessionAndModule for this exception. */
             /* coverity[misra_c_2012_rule_10_5_violation] */
@@ -4012,7 +4015,7 @@ static CK_RV prvSignInitEC_RSAKeys( P11Session_t * pxSession,
     CK_RV xResult = CKR_KEY_HANDLE_INVALID;
 
     mbedtls_pk_init( &pxSession->xSignKey );
-    lMbedTLSResult = mbedtls_pk_parse_key( &pxSession->xSignKey, pucKeyData, ulKeyDataLength, NULL, 0 );
+    lMbedTLSResult = mbedtls_pk_parse_key( &pxSession->xSignKey, pucKeyData, ulKeyDataLength, NULL, 0, mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE );
 
     if( 0 == lMbedTLSResult )
     {
@@ -4389,6 +4392,7 @@ CK_DECLARE_FUNCTION( CK_RV, C_Sign )( CK_SESSION_HANDLE hSession,
                                                               pData,
                                                               ulDataLen,
                                                               pxSignatureBuffer,
+                                                              xExpectedInputLength,
                                                               &xExpectedInputLength,
                                                               mbedtls_ctr_drbg_random,
                                                               &xP11Context.xMbedDrbgCtx );
@@ -4542,7 +4546,8 @@ static CK_RV prvVerifyInitEC_RSAKeys( P11Session_t * pxSession,
     /* If we fail to parse the public key, try again as a private key. */
     if( xResult != CKR_OK )
     {
-        lMbedTLSResult = mbedtls_pk_parse_key( &pxSession->xVerifyKey, pucKeyData, ulKeyDataLength, NULL, 0 );
+        lMbedTLSResult = mbedtls_pk_parse_key( &pxSession->xVerifyKey, pucKeyData, ulKeyDataLength, NULL, 0,
+                                               mbedtls_psa_get_random, MBEDTLS_PSA_RANDOM_STATE);
 
         if( 0 == lMbedTLSResult )
         {
