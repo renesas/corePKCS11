@@ -3587,12 +3587,12 @@ CK_DECLARE_FUNCTION( CK_RV, C_DigestInit )( CK_SESSION_HANDLE hSession,
     if( xResult == CKR_OK )
     {
         mbedtls_sha256_init( &pxSession->xSHA256Context );
-        lMbedTLSResult = mbedtls_sha256_starts_ret( &pxSession->xSHA256Context, 0 );
+        lMbedTLSResult = mbedtls_sha256_starts( &pxSession->xSHA256Context, 0 );
 
         if( 0 != lMbedTLSResult )
         {
             LogError( ( "Failed to initialize digest operation. "
-                        "mbedtls_sha256_starts_ret failed with: mbed TLS error = %s : %s.",
+                        "mbedtls_sha256_starts failed with: mbed TLS error = %s : %s.",
                         mbedtlsHighLevelCodeOrDefault( lMbedTLSResult ),
                         mbedtlsLowLevelCodeOrDefault( lMbedTLSResult ) ) );
             xResult = CKR_FUNCTION_FAILED;
@@ -3652,12 +3652,12 @@ CK_DECLARE_FUNCTION( CK_RV, C_DigestUpdate )( CK_SESSION_HANDLE hSession,
 
     if( xResult == CKR_OK )
     {
-        lMbedTLSResult = mbedtls_sha256_update_ret( &pxSession->xSHA256Context, pPart, ulPartLen );
+        lMbedTLSResult = mbedtls_sha256_update( &pxSession->xSHA256Context, pPart, ulPartLen );
 
         if( 0 != lMbedTLSResult )
         {
             LogError( ( "Failed to perform digest operation. "
-                        "mbedtls_sha256_update_ret failed: mbed TLS error = %s : %s.",
+                        "mbedtls_sha256_update failed: mbed TLS error = %s : %s.",
                         mbedtlsHighLevelCodeOrDefault( lMbedTLSResult ),
                         mbedtlsLowLevelCodeOrDefault( lMbedTLSResult ) ) );
             pxSession->xOperationDigestMechanism = pkcs11NO_OPERATION;
@@ -3742,12 +3742,12 @@ CK_DECLARE_FUNCTION( CK_RV, C_DigestFinal )( CK_SESSION_HANDLE hSession,
         {
             if( *pulDigestLen == ( CK_ULONG ) pkcs11SHA256_DIGEST_LENGTH )
             {
-                lMbedTLSResult = mbedtls_sha256_finish_ret( &pxSession->xSHA256Context, pDigest );
+                lMbedTLSResult = mbedtls_sha256_finish( &pxSession->xSHA256Context, pDigest );
 
                 if( 0 != lMbedTLSResult )
                 {
                     LogError( ( "Failed to finish digest operation. "
-                                "mbedtls_sha256_finish_ret failed: mbed TLS "
+                                "mbedtls_sha256_finish failed: mbed TLS "
                                 "error = %s : %s.",
                                 mbedtlsHighLevelCodeOrDefault( lMbedTLSResult ),
                                 mbedtlsLowLevelCodeOrDefault( lMbedTLSResult ) ) );
