@@ -4392,7 +4392,7 @@ CK_DECLARE_FUNCTION( CK_RV, C_Sign )( CK_SESSION_HANDLE hSession,
                                                               pData,
                                                               ulDataLen,
                                                               pxSignatureBuffer,
-                                                              xExpectedInputLength,
+                                                              *pulSignatureLen,
                                                               &xExpectedInputLength,
                                                               mbedtls_ctr_drbg_random,
                                                               &xP11Context.xMbedDrbgCtx );
